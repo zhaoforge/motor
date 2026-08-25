@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>同步发电机相量图分析（恒励磁增有功）</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-green: #4ade80;
+      --accent-red: #f87171;
+      --accent-amber: #fbbf24;
+      --border-color: #334155;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-top: 0;
+      color: var(--accent-blue);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      color: var(--accent-amber);
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+
+    .formula-box {
+      background: rgba(15, 23, 42, 0.6);
+      border-left: 4px solid var(--accent-blue);
+      padding: 12px 16px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 1.05rem;
+      margin: 12px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .metric-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .metric-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .metric-p { color: var(--accent-green); }
+    .metric-q { color: var(--accent-amber); }
+
+    .tag-inc { color: var(--accent-green); font-weight: bold; }
+    .tag-dec { color: var(--accent-red); font-weight: bold; }
+
+    pre.ascii-diagram {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.9rem;
+      color: var(--accent-blue);
+      overflow-x: auto;
+      line-height: 1.35;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background-color: rgba(56, 189, 248, 0.1);
+      color: var(--accent-blue);
+    }
+
+    .highlight-box {
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid var(--accent-red);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-top: 12px;
+    }
+
+    .tip-box {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid var(--accent-green);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- 标题与前提约定 -->
+    <div class="card">
+      <h1>相量图分析：并网单机无穷大系统（恒励磁增有功）</h1>
+      <p><strong>基础设定：</strong>端电压标量 <span style="color:var(--accent-blue);">$\dot{U} = U\angle 0^\circ$</span> 固定在水平实轴；空载电动势 <span style="color:var(--accent-amber);">$\dot{E}_0$</span> 超前 $\dot{U}$ 的夹角为功角 $\delta$。</p>
+      
+      <div class="formula-box">
+        隐极机相量方程：$\dot{E}_0 = \dot{U} + j\dot{I}X_s$
+      </div>
+
+      <ul>
+        <li><strong>并网运行：</strong>$\dot{U}$ 的大小、方向完全被电网锁死，固定于横轴。</li>
+        <li><strong>$I_f$ 不变：</strong>$E_0$ 模长恒定，$\dot{E}_0$ 顶端轨迹只能绕原点作<strong>圆周运动</strong>。</li>
+        <li><strong>开大原动机（$P \uparrow$）：</strong>功角 $\delta$ 增大，$\dot{E}_0$ 逆时针向上旋转（模长不变，角度抬高）。</li>
+      </ul>
+    </div>
+
+    <!-- 文本相量示意图 -->
+    <div class="card">
+      <h2>相量几何轨迹示意图</h2>
+      <pre class="ascii-diagram">
+           虚轴 (j) ↑
+                    |          轨迹: 模长 E₀ 恒定的圆弧
+                    |             . - ~ ~ - .
+                    |         . ´             ` .
+                    |       .´ 
+                    |      /   • E₀ (开大油门后: δ 增大)
+                    |     /   / 
+    E₀·sinδ (P) ───-┼────/───/ 
+                    |   /   / 
+                    |  /   /   • E₀ (初始状态: δ 较小)
+                    | /   /   /
+                    |/ δ₂/ δ₁/
+        ────────────+───┴───┴───────•─────────────→ 实轴
+                    0   │   │       U 固定
+                        │   └─ 水平投影 E₀·cosδ₁ (Q 较大)
+                        └───── 水平投影 E₀·cosδ₂ (Q 变小)
+      </pre>
+    </div>
+
+    <!-- 功率分量分析 -->
+    <div class="card">
+      <h2>有功与无功的投影分析</h2>
+      <div class="grid-2">
+        <div class="metric-card">
+          <div class="metric-title metric-p">有功输出 P（看竖直投影）</div>
+          <div class="formula-box" style="border-left-color: var(--accent-green);">
+            $P = \dfrac{U E_0}{X_s}\sin\delta$
+          </div>
+          <p>竖直投影长度为 $E_0\sin\delta$。<br>
+          $\delta$ 增大 $\Rightarrow$ 竖直投影变长 $\Rightarrow$ <span class="tag-inc">有功 P 增大 ↑</span></p>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title metric-q">无功输出 Q（看水平投影）</div>
+          <div class="formula-box" style="border-left-color: var(--accent-amber);">
+            $Q = \dfrac{U E_0\cos\delta}{X_s} - \dfrac{U^2}{X_s}$
+          </div>
+          <p>水平投影长度为 $E_0\cos\delta$。<br>
+          $\delta$ 增大 $\Rightarrow$ 水平投影变短 $\Rightarrow$ <span class="tag-dec">无功 Q 减小 ↓</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 对比与结论 -->
+    <div class="card">
+      <h2>工况对比与考点解析</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>工况类型</th>
+            <th>控制量</th>
+            <th>相量 $\dot{E}_0$ 的几何变化</th>
+            <th>输出变化</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>V型曲线工况</strong>（经典重点）</td>
+            <td>$P$ 固定（油门锁死），调节 $I_f$</td>
+            <td>角度 $\delta$ 基本不动，矢量仅沿垂直方向伸缩</td>
+            <td>仅改变无功 $Q$</td>
+          </tr>
+          <tr>
+            <td><strong>本题工况</strong>（习题高频）</td>
+            <td>$I_f$ 固定，开大原动机油门</td>
+            <td>模长 $E_0$ 锁死，矢量绕原点转圈抬高 $\delta$</td>
+            <td>$P$ 与 $Q$ 同时变化</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="highlight-box">
+        <strong>选项纠错：</strong>“无功输出增大” ❌（错误）。随 $\delta$ 增大，水平投影缩短，实际无功输出减小。<br>
+        <strong>结论：</strong>正确选项为 <strong>B、D</strong>。
+      </div>
+
+      <div class="tip-box">
+        💡 <strong>极简记忆口诀：</strong><br>
+        励磁不动加由门，矢量原地画圆弧；有功吃竖直（拉长增大），无功吃水平（压缩减小）。
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
