@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>隐极同步电机 V 形与倒 V 形特性曲线仿真器</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 20px;
+      line-height: 1.5;
+    }
+    .wrapper {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 18px 22px;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+    .header-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      align-items: center;
+    }
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .control-item label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: #334155;
+    }
+    .badge {
+      font-family: Consolas, Monaco, monospace;
+      background: #eff6ff;
+      color: var(--primary);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    select, input[type="range"] {
+      width: 100%;
+    }
+    select {
+      background: #ffffff;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 0.825rem;
+      outline: none;
+      cursor: pointer;
+    }
+    select:focus { border-color: var(--primary); }
+    input[type="range"] {
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* 6条曲线单独功率配置区 */
+    .power-grid-container {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+    }
+    .power-grid-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 10px;
+    }
+    .power-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+    }
+    .curve-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      border-radius: 8px;
+      border-left: 4px solid #94a3b8;
+    }
+    .curve-card label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    /* 状态说明条 */
+    .status-bar {
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: #f1f5f9;
+      border-left: 4px solid var(--primary);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: #475569;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    /* 下方图表区 */
+    .chart-panel {
+      height: 560px;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- 控制面板 -->
+  <div class="panel">
+    <div class="header-title">
+      <span>隐极同步电机特性曲线仿真</span>
+      <span style="font-size: 0.825rem; font-weight: normal; color: var(--text-muted);">
+        隐极机经典模型（$R_a = 0$）· 悬浮查看运行状态 (Q / 功率因数)
+      </span>
+    </div>
+
+    <!-- 基础参数配置 -->
+    <div class="controls-grid">
+      <div class="control-item">
+        <label for="curveType">展示曲线类型</label>
+        <select id="curveType">
+          <option value="Ia">电枢电流 Ia (V 形曲线)</option>
+          <option value="cosPhi">功率因数 cos&phi; (倒 V 形曲线)</option>
+        </select>
+      </div>
+
+      <div class="control-item">
+        <label for="machineMode">运行模式</label>
+        <select id="machineMode">
+          <option value="gen">同步发电机 (Generator)</option>
+          <option value="mot">同步电动机 (Motor)</option>
+        </select>
+      </div>
+
+      <div class="control-item">
+        <label for="xsInput">同步电抗 Xs (p.u.) <span class="badge" id="xsVal">1.00</span></label>
+        <input type="range" id="xsInput" min="0.4" max="2.0" step="0.02" value="1.00">
+      </div>
+
+      <div class="control-item">
+        <label for="vInput">端电压 V (p.u.) <span class="badge" id="vVal">1.00</span></label>
+        <input type="range" id="vInput" min="0.8" max="1.2" step="0.02" value="1.00">
+      </div>
+
+      <div class="control-item">
+        <label for="xMaxInput">X轴量程 (Ef) <span class="badge" id="xMaxVal">2.60</span></label>
+        <input type="range" id="xMaxInput" min="1.0" max="5.0" step="0.1" value="2.6">
+      </div>
+
+      <div class="control-item">
+        <label for="yMaxInput">Y轴量程 <span class="badge" id="yMaxVal">2.60</span></label>
+        <input type="range" id="yMaxInput" min="0.5" max="5.0" step="0.1" value="2.6">
+      </div>
+    </div>
+
+    <!-- 6 条曲线的独立有功功率调节 -->
+    <div class="power-grid-container">
+      <div class="power-grid-title">独立设定 6 条曲线的有功功率 P (标幺值 p.u.)：</div>
+      <div class="power-grid" id="powerSlidersGrid"></div>
+    </div>
+
+    <!-- 状态指示 -->
+    <div class="status-bar" id="descBar"></div>
+  </div>
+
+  <!-- 下方图表 -->
+  <div class="panel chart-panel">
+    <canvas id="vCurveChart"></canvas>
+  </div>
+</div>
+
+<script>
+  const ctx = document.getElementById('vCurveChart').getContext('2d');
+  const xsInput = document.getElementById('xsInput');
+  const vInput = document.getElementById('vInput');
+  const curveType = document.getElementById('curveType');
+  const machineMode = document.getElementById('machineMode');
+  const xMaxInput = document.getElementById('xMaxInput');
+  const yMaxInput = document.getElementById('yMaxInput');
+  const powerGrid = document.getElementById('powerSlidersGrid');
+
+  const initialPowers = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
+  const curveColors = [
+    '#64748b', // 曲线 1: 灰色
+    '#0284c7', // 曲线 2: 蓝色
+    '#0d9488', // 曲线 3: 青绿
+    '#16a34a', // 曲线 4: 绿色
+    '#d97706', // 曲线 5: 琥珀黄
+    '#dc2626'  // 曲线 6: 红色
+  ];
+
+  // 动态创建 6 个功率滑块
+  initialPowers.forEach((initP, i) => {
+    const card = document.createElement('div');
+    card.className = 'curve-card';
+    card.style.borderLeftColor = curveColors[i];
+    card.innerHTML = `
+      <label>
+        <span>曲线 ${i + 1}</span>
+        <span class="badge" id="pVal_${i}">${initP.toFixed(2)}</span>
+      </label>
+      <input type="range" id="pInput_${i}" min="0.0" max="1.5" step="0.05" value="${initP}">
+    `;
+    powerGrid.appendChild(card);
+  });
+
+  function getActivePowers() {
+    const powers = [];
+    for (let i = 0; i < 6; i++) {
+      const val = parseFloat(document.getElementById(`pInput_${i}`).value);
+      document.getElementById(`pVal_${i}`).innerText = val.toFixed(2);
+      powers.push(val);
+    }
+    return powers;
+  }
+
+  function computeCurveData() {
+    const Xs = parseFloat(xsInput.value);
+    const V = parseFloat(vInput.value);
+    const type = curveType.value;
+    const efMax = parseFloat(xMaxInput.value);
+    const powers = getActivePowers();
+
+    document.getElementById('xsVal').innerText = Xs.toFixed(2);
+    document.getElementById('vVal').innerText = V.toFixed(2);
+    document.getElementById('xMaxVal').innerText = efMax.toFixed(2);
+    document.getElementById('yMaxVal').innerText = parseFloat(yMaxInput.value).toFixed(2);
+
+    const numPointsPerCurve = 300;
+    const datasets = [];
+
+    // 计算稳定分支与非稳定分支
+    powers.forEach((P, idx) => {
+      // 物理修正 1: P = 0 时倒 V 曲线不具备确定性功率因数定义，跳过绘制
+      if (type === 'cosPhi' && P === 0) {
+        return;
+      }
+
+      const minEfStable = (P * Xs) / V; // 稳定极限点 (delta = 90°)
+
+      if (minEfStable < efMax) {
+        const stablePoints = [];
+        const unstablePoints = [];
+        const step = (efMax - minEfStable) / numPointsPerCurve;
+
+        for (let i = 0; i <= numPointsPerCurve; i++) {
+          const Ef = minEfStable + i * step;
+
+          let sinDelta = 0;
+          if (P > 0) {
+            sinDelta = (P * Xs) / (V * Ef);
+            if (sinDelta > 1) sinDelta = 1;
+          }
+          const cosDeltaMag = Math.sqrt(Math.max(0, 1 - sinDelta * sinDelta));
+
+          // 1. 稳定分支: delta <= 90° -> cos(delta) >= 0
+          const cosDeltaStable = cosDeltaMag;
+          const IaStable = Math.sqrt(Math.max(0, V * V + Ef * Ef - 2 * V * Ef * cosDeltaStable)) / Xs;
+
+          // 2. 非稳定分支: delta > 90° -> cos(delta) < 0
+          const cosDeltaUnstable = -cosDeltaMag;
+          const IaUnstable = Math.sqrt(Math.max(0, V * V + Ef * Ef - 2 * V * Ef * cosDeltaUnstable)) / Xs;
+
+          if (type === 'Ia') {
+            stablePoints.push({ x: Ef, y: IaStable, P: P, deltaDeg: Math.asin(sinDelta) * 180 / Math.PI });
+            if (P > 0) {
+              unstablePoints.push({ x: Ef, y: IaUnstable, P: P, deltaDeg: 180 - Math.asin(sinDelta) * 180 / Math.PI });
+            }
+          } else {
+            // 倒 V 曲线 cos(phi)
+            const cosPhiStable = (IaStable > 1e-4) ? Math.min(1.0, P / (V * IaStable)) : 0.0;
+            stablePoints.push({ x: Ef, y: cosPhiStable, P: P, deltaDeg: Math.asin(sinDelta) * 180 / Math.PI });
+
+            if (P > 0) {
+              const cosPhiUnstable = (IaUnstable > 1e-4) ? Math.min(1.0, P / (V * IaUnstable)) : 0.0;
+              unstablePoints.push({ x: Ef, y: cosPhiUnstable, P: P, deltaDeg: 180 - Math.asin(sinDelta) * 180 / Math.PI });
+            }
+          }
+        }
+
+        // 稳定分支 (实线)
+        datasets.push({
+          label: `曲线 ${idx + 1} (P = ${P.toFixed(2)} p.u.)`,
+          data: stablePoints,
+          borderColor: curveColors[idx],
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0
+        });
+
+        // 非稳定分支 (同色虚线)
+        if (P > 0) {
+          datasets.push({
+            label: `曲线 ${idx + 1} 非稳定区 (δ > 90°)`,
+            data: unstablePoints,
+            borderColor: curveColors[idx],
+            borderWidth: 1.6,
+            borderDash: [5, 4],
+            pointRadius: 0,
+            tension: 0
+          });
+        }
+      }
+    });
+
+    // 物理修正 2: 静态稳定极限分界线一直绘制到 efMax
+    if (type === 'Ia') {
+      const stabilityLimit = [];
+      const limitSteps = 200;
+
+      for (let i = 0; i <= limitSteps; i++) {
+        const Ef = (efMax / limitSteps) * i;
+        const Ia = Math.sqrt(V * V + Ef * Ef) / Xs;
+        stabilityLimit.push({ x: Ef, y: Ia });
+      }
+
+      datasets.push({
+        label: '静态稳定极限分界线 (δ = 90°)',
+        data: stabilityLimit,
+        borderColor: '#e11d48',
+        borderWidth: 2,
+        borderDash: [8, 5],
+        pointRadius: 0,
+        fill: false
+      });
+    }
+
+    return datasets;
+  }
+
+  function updateStatusBar() {
+    const isGen = machineMode.value === 'gen';
+    const isIa = curveType.value === 'Ia';
+    const extremumText = isIa ? '谷底点：cos&phi; = 1.0 (正常励磁)' : '峰顶点：cos&phi; = 1.0 (正常励磁)';
+    
+    document.getElementById('descBar').innerHTML = isGen ?
+      `<span><b>${extremumText}</b></span>
+       <span><b>左侧 (欠励)：</b>发电机吸收感性无功 (输出容性 / 超前)</span>
+       <span><b>右侧 (过励)：</b>发电机输出感性无功 (输出感性 / 滞后)</span>
+       <span><b>红色点划线：</b>隐极机静态稳定极限 (&delta; = 90&deg;)</span>` :
+      `<span><b>${extremumText}</b></span>
+       <span><b>左侧 (欠励)：</b>电动机吸收感性无功 (表现为感性负载 / 滞后)</span>
+       <span><b>右侧 (过励)：</b>电动机输出感性无功 (表现为容性负载 / 调相运行超前)</span>
+       <span><b>红色点划线：</b>隐极机静态稳定极限 (&delta; = 90&deg;)</span>`;
+  }
+
+  // 初始化图表
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: { datasets: computeCurveData() },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      interaction: {
+        mode: 'nearest',
+        intersect: false,
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          title: {
+            display: true,
+            text: '励磁电动势 / 励磁电流 Ef ∝ If (标幺值 p.u.)',
+            color: '#475569',
+            font: { size: 13, weight: '600' }
+          },
+          grid: { color: '#f1f5f9' },
+          ticks: { color: '#64748b' },
+          min: 0,
+          max: parseFloat(xMaxInput.value)
+        },
+        y: {
+          title: {
+            display: true,
+            text: '电枢电流 Ia (标幺值 p.u.)',
+            color: '#475569',
+            font: { size: 13, weight: '600' }
+          },
+          grid: { color: '#f1f5f9' },
+          ticks: { color: '#64748b' },
+          min: 0,
+          max: parseFloat(yMaxInput.value)
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            color: '#334155',
+            usePointStyle: true,
+            boxWidth: 8,
+            font: { size: 12 },
+            filter: function(item) {
+              return !item.text.includes('非稳定区');
+            }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          padding: 10,
+          cornerRadius: 6,
+          callbacks: {
+            // 实装物理状态实时计算显示
+            afterLabel: function(context) {
+              const raw = context.raw;
+              if (!raw || raw.P === undefined) return '';
+              
+              const V = parseFloat(vInput.value);
+              const Xs = parseFloat(xsInput.value);
+              const Ef = raw.x;
+              const isGen = machineMode.value === 'gen';
+              const deltaRad = raw.deltaDeg * Math.PI / 180;
+              
+              // 无功功率 Q 物理计算
+              const Q_gen = (V * Ef * Math.cos(deltaRad) - V * V) / Xs;
+              const state = Ef > Math.sqrt(V*V + (raw.P*Xs/V)**2) ? '过励 (Over-excited)' : '欠励 (Under-excited)';
+              
+              let pfState = '';
+              if (isGen) {
+                pfState = Q_gen >= 0 ? '输出感性无功 (滞后 Lagging)' : '吸收感性无功 (超前 Leading)';
+              } else {
+                pfState = Q_gen >= 0 ? '输出容性无功 (超前 Leading / 调相机)' : '吸收感性无功 (滞后 Lagging)';
+              }
+
+              return `功角 δ: ${raw.deltaDeg.toFixed(1)}°\n励磁状态: ${state}\n运行特征: ${pfState}`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  function update() {
+    const isIa = curveType.value === 'Ia';
+    const xMax = parseFloat(xMaxInput.value);
+    const yMax = parseFloat(yMaxInput.value);
+
+    chart.options.scales.x.max = xMax;
+    chart.options.scales.y.max = isIa ? yMax : Math.min(yMax, 1.2);
+    chart.options.scales.y.title.text = isIa ? '电枢电流 Ia (标幺值 p.u.)' : '功率因数 cos\u03C6';
+
+    chart.data.datasets = computeCurveData();
+    updateStatusBar();
+    chart.update('none');
+  }
+
+  // 基础参数监听
+  xsInput.addEventListener('input', update);
+  vInput.addEventListener('input', update);
+  xMaxInput.addEventListener('input', update);
+  yMaxInput.addEventListener('input', update);
+  
+  for (let i = 0; i < 6; i++) {
+    document.getElementById(`pInput_${i}`).addEventListener('input', update);
+  }
+
+  curveType.addEventListener('change', () => {
+    if (curveType.value === 'cosPhi') {
+      yMaxInput.max = "1.2";
+      yMaxInput.step = "0.05";
+      yMaxInput.value = "1.05";
+    } else {
+      yMaxInput.max = "5.0";
+      yMaxInput.step = "0.1";
+      yMaxInput.value = "2.6";
+    }
+    update();
+  });
+
+  machineMode.addEventListener('change', update);
+
+  // 初始化说明栏
+  updateStatusBar();
+</script>
+</body>
+</html>
