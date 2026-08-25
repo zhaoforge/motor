@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>同步电机</title>
+<title>Forge</title>
 
 <style>
     * {
@@ -97,10 +97,8 @@
 
 <div class="container">
 
-    <!-- 九宫格锁 -->
+    <!-- 九宫格密码页：不显示标题 -->
     <div id="lockPage">
-
-        <h1>同步电机</h1>
 
         <div class="dots" id="dots"></div>
 
@@ -122,8 +120,7 @@
 
     </div>
 
-
-    <!-- 解锁后的同步电机目录 -->
+    <!-- 解锁后的目录 -->
     <div id="contentPage">
 
         <h1>同步电机</h1>
@@ -140,7 +137,6 @@
 
 </div>
 
-
 <script>
 
 const correctCode = "0626";
@@ -151,11 +147,9 @@ function pressKey(number) {
 
     inputCode += number;
 
-    // 显示已经输入了几个数字，但不显示具体数字
     document.getElementById("dots").textContent =
         "●".repeat(inputCode.length);
 
-    // 输入到4位后自动判断
     if (inputCode.length === 4) {
 
         if (inputCode === correctCode) {
