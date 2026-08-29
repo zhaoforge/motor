@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>凸极同步发电机：恒励磁几何相量图与 P-Q 轨迹</title>
+<style>
+:root{--bg:#f6f8fb;--panel:#fff;--border:#cbd5e1;--text:#0f172a;--sub:#475569;--eq:#2563eb;--rel:#ef4444;--aux:#64748b;--f:#7c3aed;--grid:#e2e8f0;--q3:#059669}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif}body{overflow:hidden}.app{height:100%;display:flex;flex-direction:column}
+header{height:48px;flex:0 0 48px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 12px;gap:10px}header h1{font-size:15px;margin:0;white-space:nowrap}.badge{font-size:11px;padding:4px 8px;border:1px solid #bbf7d0;background:#ecfdf5;color:#047857;border-radius:999px;white-space:nowrap}
+.main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:8px;padding:8px}.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column}.panel-title{height:38px;flex:0 0 38px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:13px;font-weight:700}.svg-wrap{flex:1;min-height:0;position:relative}svg{width:100%;height:100%;display:block}
+.bottom{flex:0 0 auto;background:#fff;border-top:1px solid var(--border);padding:8px 12px;display:grid;grid-template-columns:minmax(260px,0.9fr) minmax(360px,1.2fr) minmax(380px,1.3fr);gap:12px;align-items:center}.control{display:grid;grid-template-columns:72px 1fr 72px;gap:8px;align-items:center;font-size:12px}input[type=range]{width:100%;accent-color:#2563eb}input[type=number]{width:100%;border:1px solid var(--border);border-radius:5px;padding:4px;text-align:right}.consts{font-size:11px;line-height:1.6;color:var(--sub);margin-top:2px}.consts b{color:var(--text)}
+.values-box{font-size:11px;line-height:1.55;background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:6px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+.val-sec{display:flex;flex-direction:column;gap:1px}
+.val-title{font-weight:700;font-size:11.5px;margin-bottom:2px}
+.k{font-family:Consolas,Menlo,monospace;font-weight:700}
+.c-p1{color:#2563eb}.c-p2{color:#ef4444}.c-p{color:#0f172a;font-weight:700}
+.c-q1{color:#2563eb}.c-q2{color:#ef4444}.c-q3{color:#059669}.c-q{color:#0f172a;font-weight:700}
+.math-panel{font-size:11px;color:#334155;line-height:1.5;background:#f8fafc;border-left:3px solid #2563eb;padding:6px 10px;border-radius:4px;display:flex;flex-direction:column;gap:3px}
+.math-row{display:flex;flex-wrap:wrap;gap:8px}
+.legend{display:flex;gap:8px;flex-wrap:wrap;font-size:10.5px;color:#334155}.dot{display:inline-block;width:10px;height:3px;border-radius:2px;vertical-align:middle;margin-right:3px}
+@media(max-width:900px){body{overflow:auto}.app{height:auto;min-height:100vh}.main{grid-template-columns:1fr;grid-template-rows:540px 480px}.bottom{grid-template-columns:1fr;gap:8px}.panel{min-height:0}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><h1>凸极同步发电机：恒励磁几何相量图与 P-Q 各组成项几何标注</h1><div class="badge">E<sub>q</sub>、U、x<sub>d</sub>、x<sub>q</sub> 固定</div></header>
+<div class="main">
+<section class="panel">
+  <div class="panel-title">
+    <span>① 课本图 2-7(a) 严格几何对应与 P、Q 组成项标注</span>
+    <div class="legend">
+      <span><i class="dot" style="background:#2563eb"></i>励磁项(P1,Q1)</span>
+      <span><i class="dot" style="background:#ef4444"></i>磁阻项(P2,Q2)</span>
+      <span><i class="dot" style="background:#059669"></i>固定项(Q3)</span>
+      <span><i class="dot" style="background:#64748b"></i>辅助线</span>
+    </div>
+  </div>
+  <div class="svg-wrap"><svg id="geoSvg" viewBox="0 0 920 620"></svg></div>
+</section>
+<section class="panel">
+  <div class="panel-title">
+    <span>② 恒励磁 E<sub>q</sub>=常数 时的 P-Q 轨迹 F</span>
+    <span style="font-size:10.5px;color:#64748b">B 随 δ 沿 F 移动</span>
+  </div>
+  <div class="svg-wrap"><svg id="pqSvg" viewBox="0 0 760 620"></svg></div>
+</section>
+</div>
+<div class="bottom">
+<div>
+  <div class="control"><b>功角 δ</b><input id="deltaRange" type="range" min="0" max="90" step="0.5" value="30"><input id="deltaNum" type="number" min="0" max="90" step="0.5" value="30"></div>
+  <div class="consts">固定参数：<b>U=1.00</b>，<b>E<sub>q</sub>=1.60</b>，<b>x<sub>d</sub>=1.80</b>，<b>x<sub>q</sub>=1.00</b> (p.u.)<br>
+  母线段长度：<b>A = E<sub>q</sub>U/x<sub>d</sub> = <span id="vA" class="k"></span></b>，<b>R = ½mO′ = <span id="vR" class="k"></span></b></div>
+</div>
+
+<div class="values-box">
+  <div class="val-sec">
+    <div class="val-title">有功项分解 (P = bB)</div>
+    <div>P1 (b′B) = <span class="k c-p1" id="vP1"></span></div>
+    <div>P2 (bb′) = <span class="k c-p2" id="vP2"></span></div>
+    <div>P = P1+P2 = <span class="k c-p" id="vP"></span> (校验: <span id="vChkP" class="k"></span>)</div>
+  </div>
+  <div class="val-sec">
+    <div class="val-title">无功项分解 (Q = Ob)</div>
+    <div>Q1 (nb′) = <span class="k c-q1" id="vQ1"></span>, Q2 (O″l) = <span class="k c-q2" id="vQ2"></span></div>
+    <div>Q3 (O″O) = <span class="k c-q3" id="vQ3"></span> (基准项)</div>
+    <div>Q = Q1+Q2−Q3 = <span class="k c-q" id="vQ"></span> (校验: <span id="vChkQ" class="k"></span>)</div>
+  </div>
+</div>
+
+<div class="math-panel">
+  <div><b>课本几何原式：</b><span class="k">Q = nb′ − lO′ − O′O</span></div>
+  <div><b>几何等价变换：</b><span class="k">lO′ = O″O′ − O″l</span>  (注：lO′不是Q2)</div>
+  <div><b>二倍角展开式：</b><span class="k">Q = nb′ + O″l − (O″O′ + O′O) = Q1 + Q2 − Q3</span></div>
+  <div style="font-size:10px;color:#64748b;margin-top:2px;">对应线段：Q1=nb′(励磁项), Q2=O″l(磁阻二倍角项), Q3=O″O(固定电抗基准项)</div>
+</div>
+</div>
+</div>
+
+<script>
+const U=1.00, Eq=1.60, xd=1.80, xq=1.00, deltaRef=30;
+const geoSvg=document.getElementById('geoSvg'), pqSvg=document.getElementById('pqSvg'), deltaRange=document.getElementById('deltaRange'), deltaNum=document.getElementById('deltaNum');
+deltaRange.addEventListener('input',()=>{deltaNum.value=deltaRange.value;render()});
+deltaNum.addEventListener('input',()=>{let v=parseFloat(deltaNum.value);if(!Number.isFinite(v))return;v=Math.max(0,Math.min(90,v));deltaRange.value=v;render()});
+
+function rad(d){return d*Math.PI/180}
+function calc(deltaDeg){
+  const d=rad(deltaDeg),A=Eq*U/xd,R=U*U/2*(1/xq-1/xd),Q0=U*U/2*(1/xq+1/xd);
+  const Pexc=A*Math.sin(d),Prel=R*Math.sin(2*d),Qexc=A*Math.cos(d),Qrel=R*Math.cos(2*d);
+  const P=Pexc+Prel,Q=Qexc+Qrel-Q0,S=Math.hypot(P,Q),phi=Math.atan2(Q,P)*180/Math.PI;
+  const O={x:0,y:0},Op={x:-U*U/xd,y:0},m={x:-U*U/xq,y:0},Opp={x:(m.x+Op.x)/2,y:0},n={x:Opp.x+R*Math.cos(2*d),y:R*Math.sin(2*d)},eDir={x:Math.cos(d),y:Math.sin(d)},B={x:n.x+A*eDir.x,y:n.y+A*eDir.y},E={x:Op.x+A*eDir.x,y:Op.y+A*eDir.y};
+  const Id=(Eq-U*Math.cos(d))/xd,EQ=U*Math.cos(d)+xq*Id,AQ=EQ*U/xd,D={x:Op.x+AQ*eDir.x,y:Op.y+AQ*eDir.y},l={x:n.x,y:0},b={x:B.x,y:0},bp={x:B.x,y:n.y};
+  return{d,A,R,Q0,P,Q,S,phi,Pexc,Prel,Qexc,Qrel,O,Op,m,Opp,n,B,E,D,l,b,bp,EQ,AQ}
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function line(x1,y1,x2,y2,stroke='#334155',w=2,dash='',marker=''){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-width="${w}" ${dash?`stroke-dasharray="${dash}"`:''} ${marker?`marker-end="url(#${marker})"`:''}/>`}
+function text(x,y,s,size=14,anchor='middle',fill='#0f172a',weight='400'){return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" fill="${fill}" font-weight="${weight}">${esc(s)}</text>`}
+function circ(x,y,r=4.5,stroke='#0f172a',fill='#fff',w=2){return `<circle cx="${x}" cy="${y}" r="${r}" stroke="${stroke}" fill="${fill}" stroke-width="${w}"/>`}
+function poly(points,stroke='#334155',w=2,dash='',fill='none'){return `<polyline points="${points.map(p=>p.join(',')).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${w}" ${dash?`stroke-dasharray="${dash}"`:''}/>`}
+
+function badgeLabel(x, y, textLines, color, align='left', bg='rgba(255,255,255,0.92)') {
+  const lineH = 13.5;
+  const padX = 6, padY = 4;
+  const maxChars = Math.max(...textLines.map(l => l.length));
+  const w = maxChars * 6.5 + padX * 2 + 10;
+  const h = textLines.length * lineH + padY * 2;
+  let bx = align === 'center' ? x - w / 2 : (align === 'right' ? x - w : x);
+  let by = y - h / 2;
+  let s = `<g class="geo-tag">`;
+  s += `<rect x="${bx}" y="${by}" width="${w}" height="${h}" rx="4" ry="4" fill="${bg}" stroke="${color}" stroke-width="1.2" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.08))"/>`;
+  textLines.forEach((tl, i) => {
+    let fontW = i === 0 ? '700' : '500';
+    let fillC = i === 0 ? color : '#334155';
+    let tx = align === 'center' ? x : (align === 'right' ? x - padX : bx + padX);
+    let tAnchor = align === 'center' ? 'middle' : (align === 'right' ? 'end' : 'start');
+    s += `<text x="${tx}" y="${by + padY + (i + 0.82) * lineH}" text-anchor="${tAnchor}" font-size="11" fill="${fillC}" font-weight="${fontW}" font-family="-apple-system,BlinkMacSystemFont,monospace">${esc(tl)}</text>`;
+  });
+  s += `</g>`;
+  return s;
+}
+
+function drawGeo(c){
+  const W=920,H=620,qMin=-1.35,qMax=1.25,pMin=-0.30,pMax=1.35,ml=60,mr=30,mt=35,mb=60;
+  const sx=q=>ml+(q-qMin)/(qMax-qMin)*(W-ml-mr),sy=p=>H-mb-(p-pMin)/(pMax-pMin)*(H-mt-mb);
+  let h=`<defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#334155"/></marker>
+    <marker id="arrB" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#2563eb"/></marker>
+    <marker id="arrR" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#ef4444"/></marker>
+    <marker id="arrG" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#059669"/></marker>
+  </defs>`;
+
+  // Grid
+  for(let q=-1.2;q<=1.2;q+=0.2)h+=line(sx(q),sy(pMin),sx(q),sy(pMax),'#eef2f7',1);
+  for(let p=-0.2;p<=1.2;p+=0.2)h+=line(sx(qMin),sy(p),sx(qMax),sy(p),'#eef2f7',1);
+  
+  // Coordinate Axes
+  h+=line(sx(qMin),sy(0),sx(qMax),sy(0),'#334155',2,'','arr');
+  h+=line(sx(0),sy(pMin),sx(0),sy(pMax),'#334155',2,'','arr');
+  h+=text(sx(qMax)-4,sy(0)-10,'Q (Ob)',15,'end','#0f172a','700');
+  h+=text(sx(0)+10,sy(pMax)+15,'P (bB)',15,'start','#0f172a','700');
+
+  // Geometry Semi-circle for Salient-pole Saliency
+  const rx=Math.abs(sx(c.Opp.x+c.R)-sx(c.Opp.x)),ry=Math.abs(sy(c.R)-sy(0));
+  h+=`<path d="M ${sx(c.m.x)} ${sy(0)} A ${rx} ${ry} 0 0 1 ${sx(c.Op.x)} ${sy(0)}" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="6 5"/>`;
+  h+=line(sx(c.m.x),sy(0),sx(c.Op.x),sy(0),'#64748b',2);
+  h+=line(sx(c.m.x),sy(0),sx(c.B.x),sy(c.B.y),'#64748b',1.8,'6 5');
+
+  // Key Vector Segments
+  h+=line(sx(c.n.x),sy(c.n.y),sx(c.B.x),sy(c.B.y),'#2563eb',4,'','arrB'); // nB
+  h+=line(sx(c.Opp.x),sy(0),sx(c.n.x),sy(c.n.y),'#ef4444',4,'','arrR'); // O''n
+  h+=line(sx(c.Op.x),sy(0),sx(c.E.x),sy(c.E.y),'#2563eb',2.5); // O'E
+  h+=line(sx(c.Op.x),sy(0),sx(c.D.x),sy(c.D.y),'#64748b',2);
+  h+=line(sx(0),sy(0),sx(c.D.x),sy(c.D.y),'#334155',2);
+  h+=line(sx(c.B.x),sy(c.B.y),sx(c.E.x),sy(c.E.y),'#94a3b8',1.5,'5 4');
+  h+=line(sx(c.n.x),sy(c.n.y),sx(c.Op.x),sy(0),'#94a3b8',1.5,'5 4');
+  h+=line(sx(0),sy(0),sx(c.B.x),sy(c.B.y),'#0f172a',3); // S phasor OB
+  h+=line(sx(c.Op.x),sy(0),sx(0),sy(0),'#334155',2.5); // O'O
+
+  // Decomposition Segments (P1: b'B, P2: bb', Q1: nb', Q2: O''l, Q3: O''O)
+  h+=line(sx(c.bp.x),sy(c.bp.y),sx(c.B.x),sy(c.B.y),'#2563eb',3.5); // b'B
+  h+=line(sx(c.b.x),sy(c.b.y),sx(c.bp.x),sy(c.bp.y),'#ef4444',3.5); // bb'
+  h+=line(sx(c.n.x),sy(c.n.y),sx(c.bp.x),sy(c.bp.y),'#2563eb',2.5,'4 4'); // nb'
+  h+=line(sx(c.n.x),sy(c.n.y),sx(c.l.x),sy(0),'#ef4444',1.8,'4 4'); // nl
+  h+=line(sx(c.Opp.x),sy(0),sx(c.l.x),sy(0),'#ef4444',4); // O''l
+  
+  // Q3 highlight bar along axis (O''O)
+  h+=line(sx(c.Opp.x),sy(0)-3,sx(c.O.x),sy(0)-3,'#059669',3); // O''O
+
+  // Current Vector I
+  const phiR=0.46,ph=rad(c.phi),ix=c.Op.x+phiR*Math.cos(-ph),iy=phiR*Math.sin(-ph);
+  h+=line(sx(c.Op.x),sy(0),sx(ix),sy(iy),'#334155',2,'','arr');
+  h+=text(sx(ix)+6,sy(iy)+18,'I',13,'start','#334155','700');
+
+  // Points Rendering
+  const pts=[
+    ['m',c.m,-12,22],['O″',c.Opp,0,24],['l',c.l,0,24],['O′',c.Op,0,24],
+    ['O',c.O,0,24],['n',c.n,-12,-10],['D',c.D,-10,18],['E',c.E,15,6],
+    ['B',c.B,12,-10],['b',c.b,0,24],['b′',c.bp,14,5]
+  ];
+  for(const [name,p,dx,dy] of pts){
+    h+=circ(sx(p.x),sy(p.y),name==='B'?5.5:4.2,'#0f172a','#fff',1.8);
+    h+=text(sx(p.x)+dx,sy(p.y)+dy,name,13.5,'middle','#0f172a',name==='B'?'700':'600');
+  }
+
+  // Base Segment Length Texts
+  const mid=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+  let mm=mid(c.n,c.B);
+  h+=text(sx(mm.x)+5,sy(mm.y)-9,'nB = A = Eq·U/xd',12,'middle','#2563eb','700');
+  mm=mid(c.Opp,c.n);
+  h+=text(sx(mm.x)-22,sy(mm.y)-10,'O″n = R',12,'middle','#ef4444','700');
+
+  // P decomposition labels
+  let yMidP1 = (sy(c.B.y) + sy(c.bp.y)) / 2;
+  let yMidP2 = (sy(c.bp.y) + sy(c.b.y)) / 2;
+  h += badgeLabel(sx(c.B.x) + 14, yMidP1, ['b′B : 励磁有功 P1', '= A sinδ'], '#2563eb', 'left');
+  h += badgeLabel(sx(c.B.x) + 14, yMidP2, ['bb′ : 磁阻有功 P2', '= R sin2δ'], '#ef4444', 'left');
+  
+  // Total P label next to B
+  h += badgeLabel(sx(c.B.x) + 14, sy(c.B.y) - 18, ['bB : 总有功 P', '= P1 + P2'], '#0f172a', 'left');
+
+  // Q decomposition labels
+  let xMidQ1 = (sx(c.n.x) + sx(c.bp.x)) / 2;
+  h += badgeLabel(xMidQ1, sy(c.n.y) - 22, ['nb′ : 励磁无功 Q1', '= A cosδ'], '#2563eb', 'center');
+
+  let xMidQ2 = (sx(c.Opp.x) + sx(c.l.x)) / 2;
+  h += badgeLabel(xMidQ2, sy(0) + 48, ['O″l : 磁阻无功二倍角项 Q2', '= R cos2δ'], '#ef4444', 'center');
+
+  let xMidQ3 = (sx(c.Opp.x) + sx(c.O.x)) / 2;
+  h += badgeLabel(xMidQ3, sy(0) - 26, ['O″O : 固定电抗无功基准项 Q3', '= ½mO′ + O′O (在Q中取负号 -Q3)'], '#059669', 'center');
+
+  // Angles
+  h+=text(sx(c.Op.x)+70,sy(0)-25,`δ = ${(c.d*180/Math.PI).toFixed(1)}°`,13,'middle','#d97706','700');
+  h+=text(sx(c.Opp.x)+35,sy(0)-55,'2δ',12,'middle','#ef4444','700');
+  h+=text(sx(0)+35,sy(0)-45,`φ = ${c.phi.toFixed(1)}°`,12,'middle','#475569','600');
+
+  geoSvg.innerHTML=h;
+}
+
+function drawPQ(c){
+  const W=760,H=620,ml=70,mr=30,mt=35,mb=60,arr=[];
+  for(let d=0;d<=90;d+=0.5)arr.push(calc(d));
+  const ref=calc(deltaRef),SN=ref.S,PN=ref.P;
+  let qVals=arr.map(x=>x.Q).concat([-SN,SN]),pVals=arr.map(x=>x.P).concat([0,SN,PN]),qMin=Math.min(...qVals)-0.15,qMax=Math.max(...qVals)+0.18,pMin=-0.08,pMax=Math.max(...pVals)+0.18;
+  const sx=q=>ml+(q-qMin)/(qMax-qMin)*(W-ml-mr),sy=p=>H-mb-(p-pMin)/(pMax-pMin)*(H-mt-mb);
+  
+  let h=`<defs><marker id="arr2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#334155"/></marker></defs>`;
+  for(let i=0;i<=8;i++){let q=qMin+(qMax-qMin)*i/8;h+=line(sx(q),sy(pMin),sx(q),sy(pMax),'#eef2f7',1)}
+  for(let i=0;i<=7;i++){let p=pMin+(pMax-pMin)*i/7;h+=line(sx(qMin),sy(p),sx(qMax),sy(p),'#eef2f7',1)}
+  h+=line(sx(qMin),sy(0),sx(qMax),sy(0),'#334155',2,'','arr2');
+  h+=line(sx(0),sy(pMin),sx(0),sy(pMax),'#334155',2,'','arr2');
+  h+=text(sx(qMax)-4,sy(0)-9,'Q',16,'end','#0f172a','700');
+  h+=text(sx(0)+9,sy(pMax)+14,'P',16,'start','#0f172a','700');
+  
+  const N=160,circPts=[];
+  for(let a=0;a<=Math.PI;a+=Math.PI/N)circPts.push([sx(SN*Math.cos(a)),sy(SN*Math.sin(a))]);
+  h+=poly(circPts,'#94a3b8',2,'6 5');
+  h+=text(sx(SN*0.82),sy(SN*0.55),'S（额定电流圆）',11,'middle','#64748b','600');
+  h+=line(sx(qMin),sy(PN),sx(qMax),sy(PN),'#d97706',1.8,'6 5');
+  h+=text(sx(qMin)+8,sy(PN)-8,'BC：原动机有功上限',11,'start','#b45309','600');
+  h+=poly(arr.map(x=>[sx(x.Q),sy(x.P)]),'#7c3aed',4);
+  h+=text(sx(arr[52].Q)+18,sy(arr[52].P)-10,'F：恒励磁轨迹 (Eq=常数)',13,'start','#7c3aed','700');
+  h+=circ(sx(ref.Q),sy(ref.P),5,'#0f172a','#fff',2);
+  h+=text(sx(ref.Q)+10,sy(ref.P)-10,`BN（δN=${deltaRef}°）`,11,'start','#0f172a','600');
+  h+=line(sx(0),sy(0),sx(c.Q),sy(c.P),'#0f172a',2.4);
+  h+=line(sx(c.Q),sy(c.P),sx(c.Q),sy(0),'#64748b',1.5,'5 4');
+  h+=line(sx(c.Q),sy(c.P),sx(0),sy(c.P),'#64748b',1.5,'5 4');
+  h+=circ(sx(c.Q),sy(c.P),6.5,'#2563eb','#fff',3);
+  h+=text(sx(c.Q)+12,sy(c.P)-12,`B(δ=${(c.d*180/Math.PI).toFixed(1)}°)`,13,'start','#2563eb','700');
+  h+=text(sx(c.Q),sy(0)+24,`Q=${c.Q.toFixed(3)}`,11,'middle','#475569','600');
+  h+=text(sx(0)-8,sy(c.P)+4,`P=${c.P.toFixed(3)}`,11,'end','#475569','600');
+  pqSvg.innerHTML=h;
+}
+
+function render(){
+  const c=calc(parseFloat(deltaNum.value));
+  document.getElementById('vA').textContent=c.A.toFixed(4);
+  document.getElementById('vR').textContent=c.R.toFixed(4);
+  
+  // P terms
+  document.getElementById('vP1').textContent=c.Pexc.toFixed(4);
+  document.getElementById('vP2').textContent=c.Prel.toFixed(4);
+  document.getElementById('vP').textContent=c.P.toFixed(4);
+  document.getElementById('vChkP').textContent=`bB=${c.B.y.toFixed(4)}`;
+
+  // Q terms
+  document.getElementById('vQ1').textContent=c.Qexc.toFixed(4);
+  document.getElementById('vQ2').textContent=c.Qrel.toFixed(4);
+  document.getElementById('vQ3').textContent=c.Q0.toFixed(4);
+  document.getElementById('vQ').textContent=c.Q.toFixed(4);
+  document.getElementById('vChkQ').textContent=`Ob=${c.B.x.toFixed(4)}`;
+
+  drawGeo(c);
+  drawPQ(c);
+}
+render();
+</script>
+</body>
+</html>
