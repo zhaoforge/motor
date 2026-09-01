@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Forge</title>
+<title>电气知识库</title>
 
 <style>
     * {
@@ -29,7 +29,7 @@
         margin-bottom: 25px;
     }
 
-    /* 九宫格 */
+    /* 九宫格密码页 */
     #lockPage {
         text-align: center;
     }
@@ -70,8 +70,36 @@
         font-size: 16px;
     }
 
-    /* 解锁后的目录 */
-    #contentPage {
+    /* 分类页面 */
+    #categoryPage {
+        display: none;
+    }
+
+    .category-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .category {
+        border: none;
+        background: white;
+        border-radius: 16px;
+        padding: 30px 10px;
+        font-size: 20px;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        cursor: pointer;
+    }
+
+    .category:active {
+        transform: scale(0.97);
+        background: #e9edf3;
+    }
+
+    /* 各科目录 */
+    #motorPage,
+    #powerPage {
         display: none;
     }
 
@@ -90,6 +118,21 @@
     .link:active {
         transform: scale(0.98);
     }
+
+    .back {
+        width: 100%;
+        padding: 14px;
+        margin-top: 25px;
+        border: none;
+        border-radius: 12px;
+        background: #e5e9ef;
+        font-size: 17px;
+        cursor: pointer;
+    }
+
+    .back:active {
+        transform: scale(0.98);
+    }
 </style>
 </head>
 
@@ -97,7 +140,7 @@
 
 <div class="container">
 
-    <!-- 九宫格密码页：不显示标题 -->
+    <!-- 密码页 -->
     <div id="lockPage">
 
         <div class="dots" id="dots"></div>
@@ -120,8 +163,29 @@
 
     </div>
 
-    <!-- 解锁后的目录 -->
-    <div id="contentPage">
+
+    <!-- 一级分类 -->
+    <div id="categoryPage">
+
+        <h1>电气知识库</h1>
+
+        <div class="category-grid">
+
+            <button class="category" onclick="openMotor()">
+                同步电机
+            </button>
+
+            <button class="category" onclick="openPower()">
+                电力系统分析
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- 同步电机目录 -->
+    <div id="motorPage">
 
         <h1>同步电机</h1>
 
@@ -133,12 +197,38 @@
             V 形曲线
         </a>
 
-       <a class="link" href="电分发电机组运行限额.html">
-    电分发电机组运行限额
-</a>
+        <a class="link" href="电分发电机组运行限额.html">
+            电分发电机组运行限额
+        </a>
+
+        <button class="back" onclick="backToCategory()">
+            ← 返回分类
+        </button>
+
+    </div>
+
+
+    <!-- 电力系统分析目录 -->
+    <div id="powerPage">
+
+        <h1>电力系统分析</h1>
+
+        <!-- 以后把新的 HTML 放这里 -->
+
+        <!-- 示例：
+        <a class="link" href="电力线路参数.html">
+            电力线路参数
+        </a>
+        -->
+
+        <button class="back" onclick="backToCategory()">
+            ← 返回分类
+        </button>
+
     </div>
 
 </div>
+
 
 <script>
 
@@ -147,6 +237,8 @@ const correctCode = "0626";
 let inputCode = "";
 
 function pressKey(number) {
+
+    if (inputCode.length >= 4) return;
 
     inputCode += number;
 
@@ -158,19 +250,48 @@ function pressKey(number) {
         if (inputCode === correctCode) {
 
             document.getElementById("lockPage").style.display = "none";
-            document.getElementById("contentPage").style.display = "block";
+            document.getElementById("categoryPage").style.display = "block";
 
         } else {
 
             document.getElementById("message").textContent = "顺序错误";
 
             setTimeout(function () {
+
                 inputCode = "";
+
                 document.getElementById("dots").textContent = "";
                 document.getElementById("message").textContent = "";
+
             }, 700);
         }
     }
+}
+
+
+function openMotor() {
+
+    document.getElementById("categoryPage").style.display = "none";
+    document.getElementById("motorPage").style.display = "block";
+
+}
+
+
+function openPower() {
+
+    document.getElementById("categoryPage").style.display = "none";
+    document.getElementById("powerPage").style.display = "block";
+
+}
+
+
+function backToCategory() {
+
+    document.getElementById("motorPage").style.display = "none";
+    document.getElementById("powerPage").style.display = "none";
+
+    document.getElementById("categoryPage").style.display = "block";
+
 }
 
 </script>
