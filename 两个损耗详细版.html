@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>变压器两个复功率损耗——完整逻辑推导</title>
+  <!-- 引入 MathJax 3 渲染 LaTeX 公式 -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      chtml: {
+        scale: 0.95
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --bg-body: #f4f7fa;
+      --bg-card: #ffffff;
+      --border-color: #e2e8f0;
+      --primary: #1d4ed8;
+      --primary-hover: #1e40af;
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+      --accent: #b45309;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --table-header: #f1f5f9;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text-main);
+      line-height: 1.65;
+      padding: 16px 12px 32px 12px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* 手机端头部 */
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 0 4px;
+    }
+
+    .header h1 {
+      font-size: 1.35rem;
+      color: var(--primary);
+      margin-bottom: 6px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+
+    /* 顶层对照表卡片 */
+    .summary-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-top: 4px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 16px 14px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .summary-card h3 {
+      font-size: 1.02rem;
+      color: var(--primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 针对手机屏幕滚动的表格包裹层 */
+    .table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+
+    table.comparison-table {
+      width: 100%;
+      min-width: 320px;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    table.comparison-table th, 
+    table.comparison-table td {
+      padding: 8px 6px;
+      border: 1px solid #e2e8f0;
+    }
+
+    table.comparison-table th {
+      background-color: var(--table-header);
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    table.comparison-table tr:nth-child(even) {
+      background-color: #fafbfc;
+    }
+
+    .highlight-keyword {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* 记忆链看板 */
+    .memory-box {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 10px;
+    }
+
+    .memory-box h4 {
+      font-size: 0.92rem;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .memory-desc {
+      font-size: 0.84rem;
+      color: #1e3a8a;
+      line-height: 1.6;
+    }
+
+    .memory-desc p {
+      margin-bottom: 6px;
+    }
+
+    .memory-desc p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* 手风琴目录容器 */
+    .accordion {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .accordion-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .accordion-item.active {
+      border-color: #93c5fd;
+    }
+
+    /* 目录标题头（手机触控高度优化） */
+    .accordion-header {
+      width: 100%;
+      background: none;
+      border: none;
+      min-height: 52px;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.96rem;
+      font-weight: 600;
+      color: var(--text-main);
+      text-align: left;
+      outline: none;
+      user-select: none;
+    }
+
+    .accordion-header:active {
+      background-color: var(--primary-light);
+    }
+
+    .accordion-item.active .accordion-header {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      border-bottom: 1px solid #dbeafe;
+    }
+
+    .arrow-icon {
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid var(--text-muted);
+      border-bottom: 2px solid var(--text-muted);
+      transform: rotate(45deg);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
+    .accordion-item.active .arrow-icon {
+      transform: rotate(-135deg);
+      border-color: var(--primary);
+    }
+
+    /* 展开收起内容 */
+    .accordion-content {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+      background-color: #ffffff;
+    }
+
+    .accordion-item.active .accordion-content {
+      opacity: 1;
+    }
+
+    .content-inner {
+      padding: 16px 14px;
+      color: #334155;
+      font-size: 0.88rem;
+    }
+
+    /* 手机端公式滚动与排版适配 */
+    .formula-box {
+      margin: 10px 0;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border-radius: 6px;
+      border: 1px dashed #cbd5e1;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .note-block {
+      background-color: #f8fafc;
+      border-left: 3px solid #64748b;
+      padding: 10px 12px;
+      margin: 10px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.86rem;
+    }
+
+    .note-block.blue {
+      border-left-color: var(--primary);
+      background-color: #f8faff;
+    }
+
+    .rule-box {
+      background-color: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 3px solid var(--accent);
+      padding: 10px 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      color: #92400e;
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+
+    /* MathJax 移动端溢出保护与缩放 */
+    mjx-container {
+      max-width: 100% !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      padding: 2px 0 !important;
+    }
+
+    mjx-container[jax="CHTML"] {
+      margin: 4px 0 !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header class="header">
+      <h1>变压器复功率损耗逻辑总结</h1>
+      <p>不盲目死背公式 · 洞悉试验到工程简化的推导本质</p>
+    </header>
+
+    <!-- 总体对照表与主线卡片 -->
+    <section class="summary-card">
+      <h3>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        双支路核心对照
+      </h3>
+      <div class="table-container">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>对比维度</th>
+              <th>串联阻抗支路</th>
+              <th>并联励磁支路</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>参数</strong></td>
+              <td>$R_T + jX_T$</td>
+              <td>$G_T - jB_T$</td>
+            </tr>
+            <tr>
+              <td><strong>有功 / 无功</strong></td>
+              <td>$\Delta P_T$ / $\Delta Q_T$</td>
+              <td>$\Delta P_0$ / $\Delta Q_0$</td>
+            </tr>
+            <tr>
+              <td><strong>对应试验</strong></td>
+              <td><strong>短路试验</strong></td>
+              <td><strong>空载试验</strong></td>
+            </tr>
+            <tr>
+              <td><strong>已知有功</strong></td>
+              <td>$\Delta P_s$（铜耗）</td>
+              <td>$\Delta P_0$（铁耗）</td>
+            </tr>
+            <tr>
+              <td><strong>算无功用</strong></td>
+              <td>$U_s\%$</td>
+              <td>$I_0\%$</td>
+            </tr>
+            <tr>
+              <td><strong>记忆</strong></td>
+              <td><span class="highlight-keyword">短路看电压</span></td>
+              <td><span class="highlight-keyword">空载看电流</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="memory-box">
+        <h4>🔗 最终压缩记忆链</h4>
+        <div class="memory-desc">
+          <p>• <strong>短路试验：</strong> $\Delta P_s + U_s\% \implies \Delta\dot S_T \approx \left(\Delta P_s + j\frac{U_s\%}{100}S_N\right)\left(\frac{S}{S_N}\right)^2$</p>
+          <p>• <strong>空载试验：</strong> $\Delta P_0 + I_0\% \implies \Delta\dot S_0 \approx \Delta P_0 + j\frac{I_0\%}{100}S_N$</p>
+          <p style="margin-top:4px; font-weight:600;">最短记忆：短路看电压 $U_s\%$，空载看电流 $I_0\%$；两个百分数除以 100 再乘 $S_N$，分别给出两个无功近似值。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 目录展开手风琴 -->
+    <div class="accordion" id="transformerAccordion">
+
+      <!-- 一、串联阻抗支路 -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span>一、串联阻抗支路</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p><strong>最原始的复功率：</strong></p>
+            <div class="formula-box">
+              \[ \Delta\dot S_T = I^2(R_T + jX_T) \]
+              \[ \Delta P_T = I^2 R_T, \quad \Delta Q_T = I^2 X_T \]
+            </div>
+
+            <div class="note-block">
+              <p><strong>1. 有功从哪里来？</strong></p>
+              <p>短路试验在额定电流下进行（$I = I_N$），短路损耗近似为绕组铜耗：</p>
+              \[ \Delta P_s \approx I_N^2 R_T \]
+              <p>因此 $\Delta P_s$ 直接给出了额定电流时的串联电阻有功损耗。</p>
+            </div>
+
+            <div class="note-block blue">
+              <p><strong>2. 为什么 $U_s\%$ 能算无功？</strong></p>
+              <p>短路电压百分数定义：</p>
+              \[ \frac{U_s\%}{100} = \frac{U_s}{U_N} = \frac{I_N Z_T}{U_N} \]
+              <p>两边同乘以额定容量 $S_N = U_N I_N$：</p>
+              \[ \frac{U_s\%}{100}S_N = I_N^2 Z_T \]
+              <p>由于通常 $X_T \gg R_T$，所以 $X_T \approx Z_T$：</p>
+              \[ I_N^2 X_T \approx \frac{U_s\%}{100}S_N \]
+              <p>因此额定电流下的无功损耗为：</p>
+              \[ \Delta Q_{T,N} \approx \frac{U_s\%}{100}S_N \]
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 二、$U_s\%$ 为什么又能看成阻抗百分数？ -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span>二、$U_s\%$ 为什么又能看成阻抗百分数？</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p>从基准阻抗角度变形推导：</p>
+            <div class="formula-box">
+              \[ \frac{U_s}{U_N} = \frac{I_N Z_T}{I_N Z_B} = \frac{Z_T}{Z_B} = Z_T^* \]
+              \[ \implies \frac{U_s\%}{100} = Z_T^* \]
+            </div>
+            <div class="note-block">
+              <p><strong>物理结论：</strong></p>
+              <p><strong>短路电压百分数与短路阻抗标幺值数值完全相等。</strong></p>
+              <p>例如：$U_s\% = 10.5$，则标幺值 $Z_T^* = 0.105$。</p>
+              <p><em>注意：</em>$0.105$ 是标幺值，有名值阻抗为 $Z_T = 0.105 Z_B$。</p>
+            </div>
+            <p>“电压路线”和“阻抗路线”本质上是同一种物理关系的不同数学表达。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 三、实际负载下的串联损耗 -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span>三、实际负载下的串联损耗</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p>额定损耗基准：$\Delta P_s$ 与 $\Delta Q_{T,N} \approx \frac{U_s\%}{100}S_N$。</p>
+            <p>串联损耗与电流平方成正比：</p>
+            <div class="formula-box">
+              \[ \frac{\Delta S_T}{\Delta S_{T,N}} = \left(\frac{I}{I_N}\right)^2 \]
+            </div>
+            <div class="note-block">
+              <p><strong>引入工程近似 $U \approx U_N$：</strong></p>
+              \[ \frac{I}{I_N} \approx \frac{S}{S_N} \]
+            </div>
+            <p><strong>得到实用公式：</strong></p>
+            <div class="formula-box" style="border-left: 3px solid var(--primary);">
+              \[ \Delta\dot S_T \approx \left( \Delta P_s + j\frac{U_s\%}{100}S_N \right) \left(\frac{S}{S_N}\right)^2 \]
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 四、并联励磁支路 -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span>四、并联励磁支路</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p><strong>原始复功率：</strong></p>
+            <div class="formula-box">
+              \[ \Delta\dot S_0 = U^2(G_T + jB_T) \]
+              \[ \Delta P_0 = U^2 G_T, \quad \Delta Q_0 = U^2 B_T \]
+            </div>
+            <div class="note-block">
+              <p><strong>有功从哪里来？</strong></p>
+              <p>空载试验二次开路，$I_0$ 很小，绕组铜耗可忽略：</p>
+              \[ P_0 = P_{\rm Fe} + P_{\rm Cu0} \approx P_{\rm Fe} \]
+              <p>因此测得的 $\Delta P_0$ 即作为励磁支路有功损耗。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 五、为什么 $I_0\%$ 能算励磁无功？ -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span>五、为什么 $I_0\%$ 能算励磁无功？</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p><strong>空载视在功率推导：</strong></p>
+            <div class="formula-box">
+              \[ I_0 = \frac{I_0\%}{100} I_N \]
+              \[ S_0 = U_N I_0 = \frac{I_0\%}{100} S_N \]
+            </div>
+            <div class="note-block">
+              <p><strong>近似 $Q_0 \approx S_0$：</strong></p>
+              <p>励磁电流主要用于建立磁场（无功），有功占比极小：</p>
+              \[ \Delta Q_0 \approx S_0 = \frac{I_0\%}{100}S_N \]
+            </div>
+            <p><strong>得到励磁支路实用公式：</strong></p>
+            <div class="formula-box" style="border-left: 3px solid var(--primary);">
+              \[ \Delta\dot S_0 \approx \Delta P_0 + j\frac{I_0\%}{100}S_N \]
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 六、为什么一个看电压，一个看电流？ -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span>六、为什么一个看电压，一个看电流？</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <div class="formula-box">
+              <p><strong>• 短路试验：</strong></p>
+              <p>电流已固定为 $I_N$，测需要多大电压 $U_s$：</p>
+              <p style="color:var(--primary); font-weight:600;">固定电流 $\to$ 测电压 $\to$ 得 $Z_T \approx X_T \to$ 算无功</p>
+            </div>
+            <div class="formula-box">
+              <p><strong>• 空载试验：</strong></p>
+              <p>电压已固定为 $U_N$，测励磁吸收多大电流 $I_0$：</p>
+              <p style="color:var(--primary); font-weight:600;">固定电压 $\to$ 测电流 $\to$ 得 $S_0 \approx Q_0 \to$ 算无功</p>
+            </div>
+            <div class="rule-box">
+              🎯 口诀：<br>
+              “短路：电流已定，看电压；<br>
+              &nbsp;空载：电压已定，看电流。”<br>
+              两者最终都能形成 $UI$ 功率量，因而都能求得 $Q$。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 七、两个百分数的理解不要混 -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span>七、两个百分数的理解不要混</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p><strong>1. $U_s\%$（短路电压百分数）：</strong></p>
+            <div class="formula-box">
+              定义：$\frac{U_s\%}{100} = \frac{U_s}{U_N}$ ， 推导：$\frac{U_s\%}{100} = \frac{Z_T}{Z_B} = Z_T^*$
+            </div>
+            <p>它既可以按电压比值理解，也可证明它就是阻抗标幺值。</p>
+
+            <p style="margin-top:10px;"><strong>2. $I_0\%$（空载电流百分数）：</strong></p>
+            <div class="formula-box">
+              \[ \frac{I_0\%}{100} = \frac{I_0}{I_N} = I_0^* \]
+            </div>
+            <p>它直接就是电流本身的标幺值，不存在电压与阻抗的物理跨界转换。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 八、这里到底用了哪些近似？ -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span>八、这里到底用了哪些近似？</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <div class="formula-box">
+              <p><strong>① 短路试验：</strong> $\Delta P_s \approx I_N^2 R_T$</p>
+              <p style="color:var(--text-muted); font-size:0.82rem;">忽略低电压下的微小铁耗。</p>
+            </div>
+            <div class="formula-box">
+              <p><strong>② 空载试验：</strong> $\Delta P_0 \approx P_{\rm Fe}$</p>
+              <p style="color:var(--text-muted); font-size:0.82rem;">忽略微弱励磁电流带来的极小铜耗。</p>
+            </div>
+            <div class="formula-box">
+              <p><strong>③ 短路无功：</strong> $X_T \approx Z_T$</p>
+              <p style="color:var(--text-muted); font-size:0.82rem;">变压器呈强感性：$I_N^2 X_T \approx \frac{U_s\%}{100}S_N$。</p>
+            </div>
+            <div class="formula-box">
+              <p><strong>④ 励磁无功：</strong> $Q_0 \approx S_0$</p>
+              <p style="color:var(--text-muted); font-size:0.82rem;">励磁电流几乎全为感性无功：$Q_0 \approx \frac{I_0\%}{100}S_N$。</p>
+            </div>
+            <div class="formula-box">
+              <p><strong>⑤ 负载折算电压：</strong> $U \approx U_N$</p>
+              <p style="color:var(--text-muted); font-size:0.82rem;">用负载容量比替代电流比：$\frac{I}{I_N} \approx \frac{S}{S_N}$。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const accordionItems = document.querySelectorAll('.accordion-item');
+
+      // 默认展开第一项
+      if (accordionItems.length > 0) {
+        openItem(accordionItems[0]);
+      }
+
+      accordionItems.forEach(item => {
+        const header = item.querySelector('.accordion-header');
+        header.addEventListener('click', () => {
+          const isActive = item.classList.contains('active');
+
+          // 互斥折叠：点击当前项时，关闭其他项
+          accordionItems.forEach(otherItem => {
+            if (otherItem !== item) {
+              closeItem(otherItem);
+            }
+          });
+
+          // 切换自身状态
+          if (!isActive) {
+            openItem(item);
+            // 手机端贴心体验：展开时如果位置偏下，轻微平滑回滚到标题视野
+            setTimeout(() => {
+              const rect = header.getBoundingClientRect();
+              if (rect.top < 10) {
+                header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 300);
+          } else {
+            closeItem(item);
+          }
+        });
+      });
+
+      function openItem(item) {
+        item.classList.add('active');
+        const content = item.querySelector('.accordion-content');
+        content.style.maxHeight = content.scrollHeight + 'px';
+      }
+
+      function closeItem(item) {
+        item.classList.remove('active');
+        const content = item.querySelector('.accordion-content');
+        content.style.maxHeight = null;
+      }
+
+      // 屏幕旋转或尺寸变化时重新校准展开项高度
+      window.addEventListener('resize', () => {
+        const activeItem = document.querySelector('.accordion-item.active');
+        if (activeItem) {
+          const content = activeItem.querySelector('.accordion-content');
+          content.style.maxHeight = content.scrollHeight + 'px';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
