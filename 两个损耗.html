@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>电力系统分析与电机学：复功率与变压器损耗复习重点</title>
+  <!-- 引入 MathJax 3 渲染 LaTeX 公式 -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --bg-body: #f4f6f9;
+      --bg-card: #ffffff;
+      --border-color: #e5e9f0;
+      --primary: #2b5c8f;
+      --primary-hover: #1e4268;
+      --primary-light: #edf3f9;
+      --text-main: #2d3748;
+      --text-muted: #5a6a80;
+      --highlight-bg: #f8fafc;
+      --accent: #d97706;
+      --shadow-sm: 0 2px 4px rgba(0,0,0,0.03);
+      --shadow-md: 0 4px 12px rgba(43, 92, 143, 0.08);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text-main);
+      line-height: 1.75;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* 页面头部 */
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .header h1 {
+      font-size: 1.85rem;
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* 核心精炼主线卡片 */
+    .summary-card {
+      background: linear-gradient(135deg, #ffffff 0%, var(--primary-light) 100%);
+      border: 1px solid #dce5ef;
+      border-left: 5px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 22px 26px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .summary-card h3 {
+      font-size: 1.15rem;
+      color: var(--primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .summary-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.96rem;
+      color: #334155;
+    }
+
+    .summary-flow .step {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .summary-flow .badge {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .golden-rule {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed #cbd5e1;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* 手风琴目录容器 */
+    .accordion {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .accordion-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .accordion-item:hover {
+      border-color: #cbd7e4;
+      box-shadow: var(--shadow-md);
+    }
+
+    .accordion-item.active {
+      border-color: #b8cce2;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* 目录标题栏 */
+    .accordion-header {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-main);
+      text-align: left;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      outline: none;
+      user-select: none;
+    }
+
+    .accordion-header:hover {
+      background-color: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .accordion-item.active .accordion-header {
+      background-color: var(--primary-light);
+      color: var(--primary);
+      border-bottom: 1px solid #e1e9f2;
+    }
+
+    .accordion-title-text {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .arrow-icon {
+      width: 12px;
+      height: 12px;
+      border-right: 2px solid var(--text-muted);
+      border-bottom: 2px solid var(--text-muted);
+      transform: rotate(45deg);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-left: 14px;
+      flex-shrink: 0;
+    }
+
+    .accordion-item.active .arrow-icon {
+      transform: rotate(-135deg);
+      border-color: var(--primary);
+    }
+
+    /* 展开的内容区域 */
+    .accordion-content {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+      background-color: #fff;
+    }
+
+    .accordion-item.active .accordion-content {
+      opacity: 1;
+    }
+
+    .content-inner {
+      padding: 24px 26px;
+      color: #374151;
+      font-size: 0.98rem;
+    }
+
+    /* 内容微格式 */
+    .content-inner p {
+      margin-bottom: 12px;
+    }
+
+    .content-inner p:last-child {
+      margin-bottom: 0;
+    }
+
+    .point-box {
+      background-color: var(--highlight-bg);
+      border-left: 3px solid #94a3b8;
+      padding: 12px 18px;
+      margin: 12px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .point-box strong {
+      color: var(--primary);
+    }
+
+    .formula-row {
+      margin: 12px 0;
+      padding: 10px 14px;
+      background: #fafbfc;
+      border-radius: 6px;
+      border: 1px dashed #e2e8f0;
+    }
+
+    /* 公式字体与排版优化 */
+    mjx-container[jax="CHTML"] {
+      margin: 8px 0 !important;
+      font-size: 105% !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header class="header">
+      <h1>《电力系统分析》核心复习要点</h1>
+      <p>功率本质 · 常用公式推导 · 变压器复功率损耗与电机学映射</p>
+    </header>
+
+    <!-- 主线速览卡片 -->
+    <section class="summary-card">
+      <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        最后压缩成的一条核心主线
+      </h3>
+      <div class="summary-flow">
+        <div class="step">
+          <span class="badge">电机学试验</span>
+          <span>空载试验 $\to$ 测铁耗 $P_0$ ；短路试验 $\to$ 测铜耗 $P_k$</span>
+        </div>
+        <div class="step">
+          <span class="badge">等值电路</span>
+          <span>串联阻抗：$\Delta\dot S_T = I^2 Z_T$ ；并联励磁：$\Delta\dot S_0 = U^2 Y_T^*$</span>
+        </div>
+        <div class="step">
+          <span class="badge">工程公式</span>
+          <span>$\Delta\dot S_T \approx \left(\Delta P_s + j\frac{U_s\%}{100}S_N\right)\left(\frac{S}{S_N}\right)^2$ ； $\Delta\dot S_0 \approx \Delta P_0 + j\frac{I_0\%}{100}S_N$</span>
+        </div>
+      </div>
+      <div class="golden-rule">
+        💡 一句话口诀：串联阻抗看 $I^2Z$，并联励磁看 $U^2Y^*$；再用短路试验和空载试验数据将它们换成实用公式。
+      </div>
+    </section>
+
+    <!-- 互斥手风琴章节列表 -->
+    <div class="accordion" id="accordionList">
+
+      <!-- 第一章 -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title-text">一、$P、Q$ 的本源</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p><strong>瞬时功率定义：</strong></p>
+            <div class="formula-row">
+              \[ p(t) = u(t)i(t) \]
+            </div>
+            <p><strong>正弦稳态展开：</strong></p>
+            <div class="formula-row">
+              \[ p(t) = P + P\cos 2\omega t + Q\sin 2\omega t \]
+            </div>
+            <p>其中：</p>
+            <div class="formula-row">
+              \[ P = UI\cos\varphi, \qquad Q = UI\sin\varphi \]
+            </div>
+            <div class="point-box">
+              <p><strong>物理意义剖析：</strong></p>
+              <p>• <strong>$P$（有功功率）</strong>：能量的净传输，对应瞬时功率的非零平均值。</p>
+              <p>• <strong>$Q$（无功功率）</strong>：能量的往返交换，对应以 $0$ 为中心正负交替的交换功率分量的系数。</p>
+              <p><em>注意：</em>不能简单说“$Q$ 是整个振荡功率的幅值”，因为振荡部分还包含 $P\cos 2\omega t$ 项。</p>
+            </div>
+            <p><strong>复功率统一形式：</strong></p>
+            <div class="formula-row">
+              \[ \dot S = P + jQ \]
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第二章 -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title-text">二、两个最常见公式从哪来</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p><strong>1. 纯电阻情况：</strong></p>
+            <div class="formula-row">
+              \[ P = UI\cos 0^\circ = UI \]
+              \[ \text{代入 } I = \frac{U}{R} \implies P = \frac{U^2}{R} \]
+            </div>
+            <p><strong>2. 纯感性电抗情况：</strong></p>
+            <div class="formula-row">
+              \[ Q = UI\sin 90^\circ = UI \]
+              \[ \text{代入 } I = \frac{U}{X} \implies Q = \frac{U^2}{X} \]
+            </div>
+            <div class="point-box">
+              <strong>核心记忆：</strong>
+              \[ P = \frac{U^2}{R}, \qquad Q = \frac{U^2}{X} \]
+              这两个是推导结果，其根源依然是本源定义：$P = UI\cos\varphi$ 与 $Q = UI\sin\varphi$。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第三章 -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title-text">三、变压器有两部分复功率损耗</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p>教材在计算时实际严格划分为两部分：</p>
+            <div class="point-box">
+              <p><strong>1. 串联阻抗中的功率损耗：</strong></p>
+              \[ \Delta\dot S_T = \Delta P_T + j\Delta Q_T \]
+              <strong>2. 并联导纳（励磁支路）中的功率损耗：</strong>
+              \[ \Delta\dot S_0 = \Delta P_0 + j\Delta Q_0 \]
+            </div>
+            <p><strong>结构与记忆规律：</strong></p>
+            <div class="formula-row">
+              <p>• <strong>串联</strong> $\to$ 对应阻抗 $Z$ $\to$ 使用<strong>电流平方</strong>：</p>
+              \[ \Delta\dot S_T = I^2(R_T + jX_T) \]
+              <p>• <strong>并联</strong> $\to$ 对应导纳 $Y$ $\to$ 使用<strong>电压平方</strong>：</p>
+              \[ \Delta\dot S_0 = U^2(G_T + jB_T) \]
+            </div>
+            <p>这也是“一个用阻抗、一个用导纳”物理建模的本质由来。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第四章 -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title-text">四、$\Delta\dot S_T$：串联阻抗损耗</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p><strong>原始形式：</strong></p>
+            <div class="formula-row">
+              \[ \Delta\dot S_T = I^2(R_T + jX_T) \]
+              \[ \implies \Delta P_T = I^2 R_T, \qquad \Delta Q_T = I^2 X_T \]
+            </div>
+            <div class="point-box">
+              <p>• <strong>$\Delta P_T$</strong>：主要就是绕组的<strong>铜耗</strong>。</p>
+              <p>• <strong>$\Delta Q_T$</strong>：漏抗所<strong>吸收的无功功率</strong>，不是真正发热散失的能量损耗。</p>
+            </div>
+            <p><strong>利用短路试验数据得到的实用工程形式：</strong></p>
+            <div class="formula-row">
+              \[ \Delta\dot S_T \approx \left( \Delta P_s + j\frac{U_s\%}{100}S_N \right) \left(\frac{S}{S_N}\right)^2 \]
+            </div>
+            <div class="point-box">
+              <strong>这里的关键近似：</strong>
+              <p>1. $X_T \approx Z_T$（高压变压器阻抗中电阻远小于电抗）</p>
+              <p>2. 实际计算中电压近似为额定电压：$U \approx U_N$</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第五章 -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title-text">五、$\Delta\dot S_0$：励磁支路损耗</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p><strong>原始导纳与阻抗形式：</strong></p>
+            <div class="formula-row">
+              \[ \Delta\dot S_0 = G_TU^2 + jB_TU^2 \]
+              \[ \implies \Delta P_0 = G_TU^2, \qquad \Delta Q_0 = B_TU^2 \]
+              <p style="margin-top:8px;">换算成等效电阻、电抗并联形式为：</p>
+              \[ \Delta P_0 = \frac{U^2}{R_m}, \qquad \Delta Q_0 = \frac{U^2}{X_m} \]
+            </div>
+            <p><strong>利用空载试验数据的工程实用公式（教材式 3.12）：</strong></p>
+            <div class="formula-row">
+              \[ \Delta\dot S_0 \approx \Delta P_0 + j\frac{I_0\%}{100}S_N \]
+            </div>
+            <div class="point-box">
+              <p><strong>关键近似说明：</strong></p>
+              <p>工程上采用 $S_0 \approx Q_0$，因为变压器励磁电流以建立磁场的无功分量为主。</p>
+              <p>严格公式应为：</p>
+              \[ Q_0 = \sqrt{S_0^2 - P_0^2}, \quad \text{其中 } S_0 = \frac{I_0\%}{100}S_N \]
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第六章 -->
+      <div class="accordion-item">
+        <button class="accordion-header" type="button">
+          <span class="accordion-title-text">六、和《电机学》空载、短路试验对应起来</span>
+          <span class="arrow-icon"></span>
+        </button>
+        <div class="accordion-content">
+          <div class="content-inner">
+            <p>《电机学》是参数测定的底层物理来源：</p>
+            <div class="point-box">
+              <p>• <strong>空载试验：</strong> $P_0 = I_0^2 R_m$ $\to$ <strong>主要测铁耗</strong></p>
+              <p>• <strong>短路试验：</strong> $P_k = I_k^2 R_k$ $\to$ <strong>主要测铜耗</strong></p>
+            </div>
+            <div class="point-box" style="border-left-color: var(--primary);">
+              <p><strong>两门学科的关注视角递进：</strong></p>
+              <p>• <strong>《电机学》</strong>主要聚焦于设备本身物理上真正消耗掉的有功功率 $P$。</p>
+              <p>• <strong>《电力系统分析》</strong>面向电网整体潮流与节点功率平衡计算，需要统筹平衡，因此把无功一并纳入统一的复功率损耗表达：</p>
+              \[ \Delta\dot S = \Delta P + j\Delta Q \]
+              <p>因此，“复功率损耗”里的 $\Delta Q$ 不是能量在物理意义上变热消失了，而是该元件在交流工作中所<strong>吸收/占用的无功功率</strong>。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const accordionItems = document.querySelectorAll('.accordion-item');
+
+      // 默认展开第一项以获得更好的初次浏览体验
+      if (accordionItems.length > 0) {
+        toggleItem(accordionItems[0]);
+      }
+
+      accordionItems.forEach(item => {
+        const header = item.querySelector('.accordion-header');
+        header.addEventListener('click', () => {
+          const isActive = item.classList.contains('active');
+
+          // 核心：点击下一个目录时，自动关闭其他所有已展开的目录
+          accordionItems.forEach(otherItem => {
+            if (otherItem !== item) {
+              closeItem(otherItem);
+            }
+          });
+
+          // 如果当前是关闭状态则展开，若已展开再次点击则收起
+          if (!isActive) {
+            openItem(item);
+          } else {
+            closeItem(item);
+          }
+        });
+      });
+
+      function openItem(item) {
+        item.classList.add('active');
+        const content = item.querySelector('.accordion-content');
+        content.style.maxHeight = content.scrollHeight + 'px';
+      }
+
+      function closeItem(item) {
+        item.classList.remove('active');
+        const content = item.querySelector('.accordion-content');
+        content.style.maxHeight = null;
+      }
+
+      function toggleItem(item) {
+        if (item.classList.contains('active')) {
+          closeItem(item);
+        } else {
+          openItem(item);
+        }
+      }
+
+      // 视窗尺寸变化时重新校准展开项的高度
+      window.addEventListener('resize', () => {
+        const activeItem = document.querySelector('.accordion-item.active');
+        if (activeItem) {
+          const content = activeItem.querySelector('.accordion-content');
+          content.style.maxHeight = content.scrollHeight + 'px';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
